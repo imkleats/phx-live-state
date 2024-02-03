@@ -3,6 +3,9 @@ import { Socket, Channel } from "phoenix";
 
 export type LiveStateConfig = {
 
+  /** An existing Phoenix Socket connection may be passed. */
+  socket?: Socket,
+
   /** The end point to connect to, should be a websocket url (ws or wss) */
   url?: string,
 
@@ -86,7 +89,7 @@ export class LiveState implements EventTarget {
 
   constructor(config: LiveStateConfig) {
     this.config = config;
-    this.socket = new Socket(
+    this.socket = config.socket || new Socket(
       this.config.url,
       this.config.socketOptions || { logger: ((kind, msg, data) => { console.debug(`${kind}: ${msg}`, data) }) }
     );
@@ -97,8 +100,10 @@ export class LiveState implements EventTarget {
   /** connect to socket and join channel. will do nothing if already connected */
   connect() {
     if (!this.connected) {
-      this.socket.onError((e) => this.emitError('socket error', e));
-      this.socket.connect();
+      if (!this.socket.isConnected()){
+        this.socket.onError((e) => this.emitError('socket error', e));
+        this.socket.connect();
+      }
       this.channel.onError((e) => this.emitError('channel error', e));
       this.channel.join().receive("ok", (resp) => {
         console.debug('channel joined', resp);
