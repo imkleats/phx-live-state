@@ -23,6 +23,7 @@
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
     "@open-wc/testing": "^3.1.6",
+    "@types/phoenix": "^1.6.4",
     "@types/sinon-chai": "^3.2.8",
     "@web/test-runner": "^0.13.31",
     "@web/test-runner-puppeteer": "^0.10.5",
