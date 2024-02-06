@@ -1,8 +1,8 @@
 import { expect } from "@esm-bundle/chai";
 import LiveState from '../src/LiveState';
 import { connectElement } from "../src";
-import { Channel } from 'phoenix';
-import sinon from 'sinon';
+import { Channel, type Push } from 'phoenix';
+import sinon, { type SinonStub } from 'sinon';
 import { html, LitElement } from 'lit';
 import { property, customElement, state } from 'lit/decorators.js';
 import { fixture } from '@open-wc/testing';
@@ -13,17 +13,17 @@ describe('LiveState', () => {
   let socketMock, liveState, stubChannel, receiveStub;
   beforeEach(() => {
     liveState = new LiveState({url: "wss://foo.com", topic: "stuff"});
-    socketMock = sinon.mock(liveState.socket);
+    socketMock = sinon.mock(liveState.socketManager.socket);
     receiveStub = sinon.stub();
     receiveStub.withArgs("ok", sinon.match.func).returns({receive: receiveStub});
     stubChannel = sinon.createStubInstance(Channel, {
       join: sinon.stub().returns({
         receive: receiveStub
-      }),
-      on: sinon.spy(),
-      push: sinon.spy()
+      }) as sinon.SinonStub<[timeout?: number], Push>,
+      on: sinon.spy() as SinonStub<[event: string, callback: (response?: any) => void | Promise<void>], number>,
+      push: sinon.spy() as SinonStub<[event: string, payload: object, timeout?: number], Push>
     });
-    liveState.channel = stubChannel
+    liveState.socketManager.replaceTopicChannel("stuff", stubChannel)
   });
 
   it('connects to a socket and channel', () => {
